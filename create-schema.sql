@@ -7,6 +7,7 @@ CREATE TABLE laundry (
   description VARCHAR(255),
   location VARCHAR(255),
   special_instructions VARCHAR(255),
+  dirty BOOLEAN,
   volume INT
 );
 
