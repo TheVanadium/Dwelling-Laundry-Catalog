@@ -143,3 +143,17 @@ INSERT INTO SupportsCleaningSystem (cleaners, wash_method, detergent, dry_method
 INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 1);
 INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 2);
 INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 3);
+
+-- Add likes relationships
+INSERT INTO Likes (cleaners, owner) VALUES ('1234 Elm St', 'Donald');
+INSERT INTO Likes (cleaners, owner) VALUES ('1234 Elm St', 'Herbert');
+INSERT INTO Likes (cleaners, owner) VALUES ('Home', 'Harry');
+
+-- Regular machine washable items can use AllPurpose detergent
+INSERT INTO Deterges (laundry, detergent) VALUES (1, 'AllPurpose');  -- T-shirt
+INSERT INTO Deterges (laundry, detergent) VALUES (2, 'AllPurpose');  -- T-shirt
+INSERT INTO Deterges (laundry, detergent) VALUES (3, 'AllPurpose');  -- Sweats
+INSERT INTO Deterges (laundry, detergent) VALUES (4, 'AllPurpose');  -- Jeans
+INSERT INTO Deterges (laundry, detergent) VALUES (7, 'AllPurpose');  -- Button-up shirt
+INSERT INTO Deterges (laundry, detergent) VALUES (8, 'AllPurpose');  -- Underpants
+INSERT INTO Deterges (laundry, detergent) VALUES (9, 'AllPurpose');  -- Socks
