@@ -5,7 +5,97 @@ def connect_db():
     conn = sqlite3.connect("Checkpoint2-dbase.sqlite3")
     return conn
 
+def insert_owner(
+    name: str,
+    allergies: list[str] = [],
+    can_wash: list[str] = [],
+    liked_cleaners: list[str] = [],
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
 
+    try:
+        cursor.execute("INSERT INTO owner VALUES (?);", (name,))
+    except sqlite3.IntegrityError:
+        print(f"Owner {name} already exists in the database.")
+
+    if allergies:
+        for allergy in allergies:
+            try:
+                # First ensure the ingredient exists
+                cursor.execute(
+                    "INSERT OR IGNORE INTO detergent_ingredient VALUES (?);", 
+                    (allergy,)
+                )
+                # Then create the allergy relationship
+                cursor.execute(
+                    "INSERT INTO IsAllergicTo VALUES (?, ?);",
+                    (name, allergy)
+                )
+            except sqlite3.IntegrityError:
+                print(f"Allergy {allergy} already recorded for {name}")
+
+    if can_wash:
+        for washee in can_wash:
+            try:
+                cursor.execute(
+                    "INSERT INTO OwnerCanWash VALUES (?, ?);",
+                    (name, washee)
+                )
+            except sqlite3.IntegrityError:
+                print(f"Wash permission {name}->{washee} already exists")
+
+    if liked_cleaners:
+        for cleaner in liked_cleaners:
+            try:
+                cursor.execute(
+                    "INSERT INTO Likes VALUES (?, ?);",
+                    (cleaner, name)
+                )
+            except sqlite3.IntegrityError:
+                print(f"Like relationship {name}->{cleaner} already exists")
+
+    cursor.close()
+    db.commit()
+    db.close()
+
+def insert_cleaners(
+    address: str,
+    name: str,
+    supported_systems: list[tuple[str, str, str]] = [],  # List of (wash_method, detergent, dry_method)
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
+
+    try:
+        cursor.execute(
+            "INSERT INTO cleaners VALUES (?, ?);",
+            (address, name)
+        )
+    except sqlite3.IntegrityError:
+        print(f"Cleaner at address {address} already exists in the database.")
+
+    if supported_systems:
+        for system in supported_systems:
+            wash_method, detergent, dry_method = system
+            try:
+                # First ensure the cleaning system exists
+                cursor.execute(
+                    "INSERT OR IGNORE INTO cleaning_system VALUES (?, ?, ?);",
+                    (wash_method, detergent, dry_method)
+                )
+                # Then create the support relationship
+                cursor.execute(
+                    "INSERT INTO SupportsCleaningSystem VALUES (?, ?, ?, ?);",
+                    (address, wash_method, detergent, dry_method)
+                )
+            except sqlite3.IntegrityError:
+                print(f"System support {address}->{system} already exists")
+
+    cursor.close()
+    db.commit()
+    db.close()
+    
 def insert_laundry(
     owner: str,
     description: str,
