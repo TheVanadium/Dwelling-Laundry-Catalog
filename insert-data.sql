@@ -150,10 +150,80 @@ INSERT INTO Likes (cleaners, owner) VALUES ('1234 Elm St', 'Herbert');
 INSERT INTO Likes (cleaners, owner) VALUES ('Home', 'Harry');
 
 -- Regular machine washable items can use AllPurpose detergent
-INSERT INTO Deterges (laundry, detergent) VALUES (1, 'AllPurpose');  -- T-shirt
-INSERT INTO Deterges (laundry, detergent) VALUES (2, 'AllPurpose');  -- T-shirt
-INSERT INTO Deterges (laundry, detergent) VALUES (3, 'AllPurpose');  -- Sweats
-INSERT INTO Deterges (laundry, detergent) VALUES (4, 'AllPurpose');  -- Jeans
-INSERT INTO Deterges (laundry, detergent) VALUES (7, 'AllPurpose');  -- Button-up shirt
-INSERT INTO Deterges (laundry, detergent) VALUES (8, 'AllPurpose');  -- Underpants
-INSERT INTO Deterges (laundry, detergent) VALUES (9, 'AllPurpose');  -- Socks
+INSERT INTO Deterges (laundry, detergent) VALUES (1, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (2, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (3, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (4, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (7, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (8, 'AllPurpose');  
+INSERT INTO Deterges (laundry, detergent) VALUES (9, 'AllPurpose');  
+INSERT INTO Likes (cleaners, owner) VALUES ('Home', 'Donald');
+INSERT INTO Likes (cleaners, owner) VALUES ('Home', 'Herbert');
+INSERT INTO Likes (cleaners, owner) VALUES ('Home', 'Harry');
+INSERT INTO Likes (cleaners, owner) VALUES ('456 Elm St', 'Donald');
+INSERT INTO Likes (cleaners, owner) VALUES ('456 Elm St', 'Herbert');
+INSERT INTO Likes (cleaners, owner) VALUES ('456 Elm St', 'Harry');
+
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 1);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 2);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 3);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 4);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 5);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 6);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 7);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 8);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 9);
+
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 10);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 11);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 12);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 13);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 14);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 15);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 16);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 17);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 18);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 19);
+
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 20);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 21);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 22);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 23);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 24);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 25);
+INSERT INTO Deterges (detergent, laundry) VALUES ('DrySolvent', 26);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 27);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 28);
+INSERT INTO Deterges (detergent, laundry) VALUES ('AllPurpose', 29);
+
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 1);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 2);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 3);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 4);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 5);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 6);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 7);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 8);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 9);
+
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 10);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 11);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 12);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 13);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 14);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 15);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 16);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 17);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 18);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 19);
+
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 20);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 21);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 22);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 23);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 24);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 25);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Dry Clean', 'DrySolvent', 'Press', 26);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 27);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 28);
+INSERT INTO CleanedBy (wash_method, detergent, dry_method, laundry) VALUES ('Washing Machine', 'AllPurpose', 'Tumble Dry', 29);
