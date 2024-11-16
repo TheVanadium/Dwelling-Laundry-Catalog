@@ -1,68 +1,92 @@
 -- DATA RETRIEVAL --
---  List all laundry items owned by a specific person
-SELECT laundry.id, laundry.description, laundry.location, laundry.special_instructions, laundry.volume
+
+-- List all laundry items owned by a specific person
+-- This one works, test with: WHERE OwnedBy.name = 'Donald'
+SELECT laundry.id, laundry.description, laundry.location, laundry.special_instructions, laundry.volume, laundry.dirty
 FROM laundry
 JOIN OwnedBy ON laundry.id = OwnedBy.id
-WHERE OwnedBy.name = 'specific_person_name';
+WHERE OwnedBy.name = :specific_person_name;
 
---  Get laundry items that a person is allowed to wash
-SELECT laundry.id, laundry.description, laundry.location, laundry.special_instructions, laundry.volume
+-- Get laundry items that a person is allowed to wash
+-- This one works, test with: WHERE ocw.washer = 'Donald'
+SELECT DISTINCT l.id, l.description, l.location, l.special_instructions, l.volume, l.dirty
+FROM laundry l
+JOIN OwnedBy o ON l.id = o.id
+LEFT JOIN OwnerCanWash ocw ON o.name = ocw.washee
+WHERE ocw.washer = :person_name 
+   OR o.name = :person_name;
+
+-- Identify compatible detergents for dark/light clothes
+-- This works, test with: WHERE (d.for_darks = TRUE AND TRUE)
+SELECT DISTINCT d.name
+FROM detergent d
+WHERE (d.for_darks = TRUE AND :is_dark = TRUE)
+   OR (d.for_lights = TRUE AND :is_dark = FALSE);
+
+-- Check allergy information
+-- This works, test with: WHERE iat.owner = 'Herbert'
+SELECT DISTINCT d.name as detergent_name, di.name as ingredient_name
+FROM detergent d
+JOIN DetergentComposedOf dco ON d.name = dco.detergent
+JOIN detergent_ingredient di ON dco.ingredient = di.name
+JOIN IsAllergicTo iat ON di.name = iat.detergent_ingredient
+WHERE iat.owner = :owner_name;
+
+-- Find laundry items washed by a specific cleaning system
+-- This works, test with: 
+-- WHERE cb.wash_method = 'Washing Machine' 
+--   AND cb.detergent = 'AllPurpose'
+--   AND cb.dry_method = 'Tumble Dry'
+SELECT l.id, l.description
+FROM laundry l
+JOIN CleanedBy cb ON l.id = cb.laundry
+WHERE cb.wash_method = :wash_method
+  AND cb.detergent = :detergent_name
+  AND cb.dry_method = :dry_method;
+
+-- Retrieve laundry history for an item
+-- This works, test with: WHERE l.id = 1
+SELECT l.id, l.description, cb.wash_method, cb.detergent, cb.dry_method
+FROM laundry l
+JOIN CleanedBy cb ON l.id = cb.laundry
+WHERE l.id = :laundry_id;
+
+-- List cleaners liked by a specific person
+-- This returns nothing because no Likes data was inserted
+-- Need to add: INSERT INTO Likes (cleaners, owner) VALUES ('1234 Elm St', 'Donald');
+SELECT c.address, c.name
+FROM cleaners c
+JOIN Likes l ON c.address = l.cleaners
+WHERE l.owner = :person_name;
+
+-- Identify compatible laundry items for a load
+-- This works, test with:
+-- WHERE scs.wash_method = 'Washing Machine'
+--   AND scs.detergent = 'AllPurpose'
+--   AND scs.dry_method = 'Tumble Dry'
+SELECT DISTINCT l.id, l.description
+FROM laundry l
+JOIN CleanedBy cb ON l.id = cb.laundry
+JOIN SupportsCleaningSystem scs ON cb.wash_method = scs.wash_method 
+    AND cb.detergent = scs.detergent 
+    AND cb.dry_method = scs.dry_method
+WHERE scs.wash_method = :desired_wash_method
+  AND scs.detergent = :desired_detergent
+  AND scs.dry_method = :desired_dry_method;
+
+-- Get special instructions for a laundry item
+-- This works, test with: WHERE id = 1
+SELECT id, description, special_instructions
 FROM laundry
-JOIN OwnedBy ON laundry.id = OwnedBy.id
-JOIN OwnerCanWash ON OwnedBy.name = OwnerCanWash.washee
-WHERE OwnerCanWash.washer = 'person_name';
+WHERE id = :laundry_id;
 
---  Identify compatible detergents for washing dark or light clothes
-SELECT detergent.name
-FROM detergent
-WHERE (detergent.for_darks = TRUE AND 'is_dark' = TRUE)
-   OR (detergent.for_lights = TRUE AND 'is_dark' = FALSE);
-
---  Check allergy information for a specific owner with detergent ingredients
-SELECT detergent_ingredient.name
-FROM detergent_ingredient
-JOIN IsAllergicTo ON detergent_ingredient.name = IsAllergicTo.detergent_ingredient
-WHERE IsAllergicTo.owner = 'owner_name';
-
---  Find laundry items washed by a specific method with a specific detergent
-SELECT laundry.id, laundry.description
-FROM laundry
-JOIN CleanedBy ON laundry.id = CleanedBy.laundry
-WHERE CleanedBy.wash_method = 'wash_method'
-  AND CleanedBy.detergent = 'detergent_name'
-  AND CleanedBy.dry_method = 'dry_method';
-
---  Retrieve laundry history for an item
-SELECT laundry.id, CleanedBy.wash_method, CleanedBy.detergent, CleanedBy.dry_method
-FROM laundry
-JOIN CleanedBy ON laundry.id = CleanedBy.laundry
-WHERE laundry.id = 'laundry_id';
-
---  List cleaners liked by a specific person
-SELECT cleaners.address, cleaners.name
-FROM cleaners
-JOIN Likes ON cleaners.address = Likes.cleaners
-WHERE Likes.owner = 'person_name';
-
---  Identify compatible laundry items for a load based on wash method and detergent
-SELECT laundry.id, laundry.description
-FROM laundry
-JOIN Deterges ON laundry.id = Deterges.laundry
-JOIN SupportsCleaningSystem ON Deterges.detergent = SupportsCleaningSystem.detergent
-WHERE SupportsCleaningSystem.wash_method = 'desired_wash_method'
-  AND SupportsCleaningSystem.detergent = 'desired_detergent'
-  AND SupportsCleaningSystem.dry_method = 'desired_dry_method';
-
---  Get special instructions for a laundry item
-SELECT special_instructions
-FROM laundry
-WHERE id = 'laundry_id';
-
---  List detergent ingredients for a specific detergent
-SELECT detergent_ingredient.name
-FROM detergent_ingredient
-JOIN DetergentComposedOf ON detergent_ingredient.name = DetergentComposedOf.ingredient
-WHERE DetergentComposedOf.detergent = 'detergent_name';
+-- List detergent ingredients
+-- This works, test with: WHERE dco.detergent = 'AllPurpose'
+SELECT di.name as ingredient_name
+FROM detergent_ingredient di
+JOIN DetergentComposedOf dco ON di.name = dco.ingredient
+WHERE dco.detergent = :detergent_name;
+-------------------------------------- 
 
 -- DATA INSERTION
 INSERT INTO owner (name) VALUES ('Donald');
