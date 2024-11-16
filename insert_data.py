@@ -95,7 +95,7 @@ def insert_cleaners(
     cursor.close()
     db.commit()
     db.close()
-    
+
 def insert_laundry(
     owner: str,
     description: str,
@@ -193,5 +193,21 @@ if __name__ == "__main__":
         ingredients=["Sodium lauryl sulfate", "Sodium laureth sulfate"],
         db=db,
     )
+
+    insert_owner(
+    name="John Smith",
+    allergies=["Sodium lauryl sulfate"],
+    can_wash=["Jane Doe"],
+    liked_cleaners=["123 Main St"]
+    )
+
+    insert_cleaners(
+    address="123 Main St",
+    name="Quick Clean",
+    supported_systems=[
+        ("Washing Machine", "Tide", "Tumble Dry"),
+        ("Dry Clean", "DrySolvent", "Press")
+     ]
+)
 
     db.close()
