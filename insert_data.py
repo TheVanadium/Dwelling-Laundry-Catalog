@@ -1,6 +1,15 @@
 import sqlite3
 
 
+def detuple(t: tuple[str]) -> str:
+    # remove () and ,
+    return str(t).replace("(", "").replace(")", "").replace(",", "").replace("'", "")
+
+
+def detuple_list(ts: list[tuple[str]]) -> list[str]:
+    return [detuple(t) for t in ts]
+
+
 def connect_db():
     conn = sqlite3.connect("Checkpoint2-dbase.sqlite3")
     return conn
@@ -80,28 +89,116 @@ def insert_detergent(
     db.close()
 
 
+def get_washing_methods(
+    cleaner_address: str, db: sqlite3.Connection
+) -> list[tuple[str, str, str]]:
+    cursor = db.cursor()
+    cursor.execute(
+        f"""
+        SELECT wash_method, detergent, dry_method
+        FROM SupportsCleaningSystem
+        WHERE cleaners = ?;
+    """,
+        (cleaner_address,),
+    )
+    washing_methods: list[tuple[str, str, str]] = cursor.fetchall()
+    cursor.close()
+    return washing_methods
+
+
+def get_laundry(
+    db: sqlite3.Connection, washing_method: tuple[str, str, str], washer: str
+) -> list[tuple[int, str, str]]:
+    cursor = db.cursor()
+    valid_washees: list[str] = detuple_list(
+        cursor.execute(
+            f"""
+        SELECT washee
+        FROM OwnerCanWash
+        WHERE washer = ?;
+    """,
+            (washer,),
+        ).fetchall()
+    )
+    valid_washees.append(washer)
+    print(valid_washees)
+    laundry: list[tuple[int, str, str]] = []
+    for washee in valid_washees:
+        cursor.execute(
+            f"""
+            SELECT id, description, name
+            FROM laundry
+            JOIN CleanedBy ON laundry.id = CleanedBy.laundry
+            JOIN Owner
+            WHERE wash_method = ?
+            AND detergent = ?
+            AND dry_method = ?
+            AND name = ?
+        """,
+            (washing_method[0], washing_method[1], washing_method[2], washee),
+        )
+        laundry.extend(cursor.fetchall())
+    cursor.close()
+    return laundry
+
+
 if __name__ == "__main__":
     db = connect_db()
+    cursor = db.cursor()
 
-    insert_laundry(
-        owner="John Doe",
-        description="A pair of jeans",
-        db=db,
-        location="Laundry basket",
-        special_instructions="Wash with cold water",
-        dirty=True,
-        volume=1,
-        detergents=["Tide"],
-        color="blue",
-    )
+    owner: str = ""
+    cursor.execute("SELECT name FROM owner;")
+    for name in detuple_list(cursor.fetchall()):
+        print(name)
+    while not owner:
+        owner = input("Enter your name: ")
+        cur = db.cursor()
+        cur.execute(
+            f"""
+            SELECT name
+            FROM Owner
+            WHERE name = ?;
+        """,
+            (owner,),
+        )
+        if not cur.fetchone():
+            print("Owner not found in database.")
+            owner = ""
 
-    insert_detergent(
-        name="Tide",
-        for_darks=True,
-        for_whites=True,
-        whitens=True,
-        ingredients=["Sodium lauryl sulfate", "Sodium laureth sulfate"],
-        db=db,
-    )
+    cleaner_address: str = ""
+    cursor.execute("SELECT name, address FROM cleaners;")
+    for cleaner in cursor.fetchall():
+        print(cleaner)
+    while not cleaner_address:
+        print("Select a cleaner:")
 
+        cleaner_address = input("Enter the address of the cleaner: ")
+        cursor.execute(
+            f"""
+            SELECT address
+            FROM cleaners
+            WHERE address = ?;
+        """,
+            (cleaner_address,),
+        )
+        if not cursor.fetchone():
+            print("Cleaner not found in database.")
+            cleaner_address = ""
+
+    washing_methods = get_washing_methods(cleaner_address, db)
+    washing_method_index = -1
+    print("Select a washing method number:")
+    for i, method in enumerate(washing_methods):
+        print(f"{i + 1}. {method}")
+    while washing_method_index < 0 or washing_method_index >= len(washing_methods):
+        washing_method_index = (
+            int(input("Enter the number of the washing method: ")) - 1
+        )
+        print(washing_method_index)
+    laundry = get_laundry(db, washing_methods[washing_method_index], owner)
+    print("Select a laundry to clean:")
+    for i, item in enumerate(laundry):
+        print(f"{i}. {item}")
+
+    cursor.close()
     db.close()
