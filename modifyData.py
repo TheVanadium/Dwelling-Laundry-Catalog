@@ -1,6 +1,5 @@
 import sqlite3
 
-
 def connect_db():
     conn = sqlite3.connect("Checkpoint2-dbase.sqlite3")
     return conn
@@ -18,6 +17,7 @@ def insert_owner(
         cursor.execute("INSERT INTO owner VALUES (?);", (name,))
     except sqlite3.IntegrityError:
         print(f"Owner {name} already exists in the database.")
+        db.rollback() 
 
     if allergies:
         for allergy in allergies:
@@ -34,6 +34,7 @@ def insert_owner(
                 )
             except sqlite3.IntegrityError:
                 print(f"Allergy {allergy} already recorded for {name}")
+                db.rollback()
 
     if can_wash:
         for washee in can_wash:
@@ -44,6 +45,7 @@ def insert_owner(
                 )
             except sqlite3.IntegrityError:
                 print(f"Wash permission {name}->{washee} already exists")
+                db.rollback()
 
     if liked_cleaners:
         for cleaner in liked_cleaners:
@@ -54,6 +56,7 @@ def insert_owner(
                 )
             except sqlite3.IntegrityError:
                 print(f"Like relationship {name}->{cleaner} already exists")
+                db.rollback()
 
     cursor.close()
     db.commit()
@@ -99,13 +102,13 @@ def insert_cleaners(
 def insert_laundry(
     owner: str,
     description: str,
-    db: sqlite3.Connection = connect_db(),
     location: str = "",
     special_instructions: str = "",
     dirty: bool = False,
     volume: int = 0,
     detergents: list[str] = [],
     color: str = "",
+    db: sqlite3.Connection = connect_db(),
 ) -> None:
     cursor = db.cursor()
     cursor.execute("SELECT MAX(id) FROM laundry;")
@@ -160,6 +163,9 @@ def insert_detergent(
         for ingredient in ingredients:
             try:
                 cursor.execute(
+                    f"INSERT INTO DetergentComposedOf VALUES (?, ?)", (name,ingredient,)
+                )
+                cursor.execute(
                     f"INSERT INTO detergent_ingredient VALUES (?)", (ingredient,)
                 )
             except sqlite3.IntegrityError:
@@ -169,45 +175,88 @@ def insert_detergent(
     db.commit()
     db.close()
 
+def delete_owner(
+    name: str,
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
 
-if __name__ == "__main__":
-    db = connect_db()
+    try:
+        # Delete from related tables first due to foreign key constraints
+        cursor.execute("DELETE FROM IsAllergicTo WHERE owner = ?;", (name,))
+        cursor.execute("DELETE FROM OwnerCanWash WHERE washer = ? OR washee = ?;", (name, name))
+        cursor.execute("DELETE FROM Likes WHERE owner = ?;", (name,))
+        cursor.execute("DELETE FROM laundry WHERE id IN (SELECT id FROM OwnedBy WHERE name = ?);", (name,))
+        cursor.execute("DELETE FROM OwnedBy WHERE name = ?;", (name,))
+        # Finally delete the owner
+        cursor.execute("DELETE FROM owner WHERE name = ?;", (name,))
+        print(f"Owner {name} and related data deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting owner {name}: {e}")
 
-    insert_laundry(
-        owner="John Doe",
-        description="A pair of jeans",
-        db=db,
-        location="Laundry basket",
-        special_instructions="Wash with cold water",
-        dirty=True,
-        volume=1,
-        detergents=["Tide"],
-        color="blue",
-    )
+    cursor.close()
+    db.commit()
+    db.close()
 
-    insert_detergent(
-        name="Tide",
-        for_darks=True,
-        for_whites=True,
-        whitens=True,
-        ingredients=["Sodium lauryl sulfate", "Sodium laureth sulfate"],
-        db=db,
-    )
+def delete_cleaners(
+    address: str,
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
 
-    insert_owner(
-    name="John Smith",
-    allergies=["Sodium lauryl sulfate"],
-    can_wash=["Jane Doe"],
-    liked_cleaners=["123 Main St"]
-    )
+    try:
+        # Delete from related tables first
+        cursor.execute("DELETE FROM SupportsCleaningSystem WHERE cleaners = ?;", (address,))
+        cursor.execute("DELETE FROM Likes WHERE cleaners = ?;", (address,))
+        # Delete the cleaner
+        cursor.execute("DELETE FROM cleaners WHERE address = ?;", (address,))
+        print(f"Cleaner at {address} and related data deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting cleaner at {address}: {e}")
 
-    insert_cleaners(
-    address="123 Main St",
-    name="Quick Clean",
-    supported_systems=[
-        ("Washing Machine", "Tide", "Tumble Dry"),
-        ("Dry Clean", "DrySolvent", "Press")
-     ]
-)
+    cursor.close()
+    db.commit()
+    db.close()
 
+def delete_laundry(
+    laundry_id: int,
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
+
+    try:
+        # Delete from related tables first
+        cursor.execute("DELETE FROM Deterges WHERE laundry = ?;", (laundry_id,))
+        cursor.execute("DELETE FROM IsColor WHERE laundry = ?;", (laundry_id,))
+        cursor.execute("DELETE FROM OwnedBy WHERE id = ?;", (laundry_id,))
+        cursor.execute("DELETE FROM CleanedBy WHERE laundry = ?;", (laundry_id,))
+        # Delete the laundry item
+        cursor.execute("DELETE FROM laundry WHERE id = ?;", (laundry_id,))
+        print(f"Laundry item {laundry_id} and related data deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting laundry item {laundry_id}: {e}")
+
+    cursor.close()
+    db.commit()
+    db.close()
+
+def delete_detergent(
+    name: str,
+    db: sqlite3.Connection = connect_db()
+) -> None:
+    cursor = db.cursor()
+
+    try:
+        # Delete from related tables first
+        cursor.execute("DELETE FROM DetergentComposedOf WHERE detergent = ?;", (name,))
+        cursor.execute("DELETE FROM Deterges WHERE detergent = ?;", (name,))
+        cursor.execute("DELETE FROM cleaning_system WHERE detergent = ?;", (name,))
+        # Delete the detergent
+        cursor.execute("DELETE FROM detergent WHERE name = ?;", (name,))
+        print(f"Detergent {name} and related data deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting detergent {name}: {e}")
+
+    cursor.close()
+    db.commit()
     db.close()
