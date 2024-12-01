@@ -107,7 +107,10 @@ def get_washing_methods(
 
 
 def get_laundry(
-    db: sqlite3.Connection, washing_method: tuple[str, str, str], washer: str
+    db: sqlite3.Connection,
+    washing_method: tuple[str, str, str],
+    washer: str,
+    dirty: bool,
 ) -> list[tuple[int, str, str]]:
     cursor = db.cursor()
     valid_washees: list[str] = detuple_list(
@@ -124,17 +127,21 @@ def get_laundry(
     print(valid_washees)
     laundry: list[tuple[int, str, str]] = []
     for washee in valid_washees:
-        cursor.execute(
-            f"""
-            SELECT id, description, name
+        sql = f"""
+            SELECT laundry.id, description, name
             FROM laundry
             JOIN CleanedBy ON laundry.id = CleanedBy.laundry
-            JOIN Owner
+            JOIN OwnedBy ON laundry.id = OwnedBy.id
             WHERE wash_method = ?
             AND detergent = ?
             AND dry_method = ?
             AND name = ?
-        """,
+        """
+        if dirty:
+            sql += "AND dirty = true"
+        sql += ";"
+        cursor.execute(
+            sql,
             (washing_method[0], washing_method[1], washing_method[2], washee),
         )
         laundry.extend(cursor.fetchall())
@@ -195,10 +202,63 @@ if __name__ == "__main__":
             int(input("Enter the number of the washing method: ")) - 1
         )
         print(washing_method_index)
-    laundry = get_laundry(db, washing_methods[washing_method_index], owner)
-    print("Select a laundry to clean:")
-    for i, item in enumerate(laundry):
-        print(f"{i}. {item}")
+    laundry = get_laundry(db, washing_methods[washing_method_index], owner, True)
+
+    remaining_laundry: list[int] = [i for i in range(len(laundry))]
+    laundry_to_clean: list[int] = []
+
+    laundry_id_input: int = -2
+    while remaining_laundry and laundry_id_input != -1:
+        # two columns, one remaining_laundry, one laundry_to_clean
+        header1 = "Remaining Laundry"
+        header2 = "Laundry to Clean"
+        print(f"{header1:<50}{header2}")
+        print("-" * 100)
+        for i in range(len(laundry)):
+            if i < len(remaining_laundry):
+                print(f"{i}. {str(laundry[remaining_laundry[i]]):<50}", end="")
+            else:
+                print(" " * 50, end="")
+            if i < len(laundry_to_clean):
+                print(f"{i+len(remaining_laundry)}. {str(laundry[laundry_to_clean[i]]):<50}")
+            else:
+                print()
+        print("Select a laundry to clean or deselect laundry (-1 to finish):")
+        laundry_id_input = int(input("Enter the number of the laundry: "))
+        if laundry_id_input == -1:
+            break
+        if laundry_id_input < len(remaining_laundry):
+            laundry_to_clean.append(remaining_laundry.pop(laundry_id_input))
+        else:
+            laundry_id_input -= len(remaining_laundry)
+            remaining_laundry.append(laundry_to_clean.pop(laundry_id_input))
+
+    print("Laundry to clean: ", [laundry[i] for i in laundry_to_clean])
+
+    # clean laundry
+    # id INT PRIMARY KEY,
+    # description VARCHAR(255),
+    # location VARCHAR(255),
+    # special_instructions VARCHAR(255),
+    # dirty BOOLEAN,
+    # volume INT
+    
+    # change dirty to clean where id in laundry[laundry_to_clean]
+    try :
+        for i in laundry_to_clean:
+            cursor.execute(
+                f"""
+                UPDATE laundry
+                SET dirty = false
+                WHERE id = ?;
+            """,
+                (laundry[i][0],),
+            )
+        db.commit()
+        print ("Laundry cleaned successfully")
+    except sqlite3.Error as e:
+        print(f"Error cleaning laundry: {e}")
+    
 
     cursor.close()
     db.close()
