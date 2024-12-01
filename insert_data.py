@@ -220,7 +220,9 @@ if __name__ == "__main__":
             else:
                 print(" " * 50, end="")
             if i < len(laundry_to_clean):
-                print(f"{i+len(remaining_laundry)}. {str(laundry[laundry_to_clean[i]]):<50}")
+                print(
+                    f"{i+len(remaining_laundry)}. {str(laundry[laundry_to_clean[i]]):<50}"
+                )
             else:
                 print()
         print("Select a laundry to clean or deselect laundry (-1 to finish):")
@@ -242,9 +244,9 @@ if __name__ == "__main__":
     # special_instructions VARCHAR(255),
     # dirty BOOLEAN,
     # volume INT
-    
+
     # change dirty to clean where id in laundry[laundry_to_clean]
-    try :
+    try:
         for i in laundry_to_clean:
             cursor.execute(
                 f"""
@@ -255,10 +257,9 @@ if __name__ == "__main__":
                 (laundry[i][0],),
             )
         db.commit()
-        print ("Laundry cleaned successfully")
+        print("Laundry cleaned successfully")
     except sqlite3.Error as e:
         print(f"Error cleaning laundry: {e}")
-    
 
     cursor.close()
     db.close()
