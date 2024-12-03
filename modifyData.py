@@ -108,6 +108,7 @@ def insert_laundry(
     volume: int = 0,
     detergents: list[str] = [],
     color: str = "",
+    isDark: bool = False,
     db: sqlite3.Connection = connect_db(),
 ) -> None:
     cursor = db.cursor()
@@ -130,6 +131,7 @@ def insert_laundry(
             )
 
     if color:
+        cursor.execute("INSERT INTO color VALUES (?, ?);", (color, isDark))
         cursor.execute("INSERT INTO IsColor VALUES (?, ?);", (color, laundry_id))
 
     if owner:
@@ -163,10 +165,10 @@ def insert_detergent(
         for ingredient in ingredients:
             try:
                 cursor.execute(
-                    f"INSERT INTO DetergentComposedOf VALUES (?, ?)", (name,ingredient,)
+                    "INSERT OR IGNORE INTO detergent_ingredient VALUES (?);", (ingredient,)
                 )
                 cursor.execute(
-                    f"INSERT INTO detergent_ingredient VALUES (?)", (ingredient,)
+                    "INSERT INTO DetergentComposedOf VALUES (?, ?);", (name, ingredient)
                 )
             except sqlite3.IntegrityError:
                 print(f"Ingredient {ingredient} already exists in the database.")
