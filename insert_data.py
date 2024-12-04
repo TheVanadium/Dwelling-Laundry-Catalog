@@ -229,6 +229,9 @@ if __name__ == "__main__":
         laundry_id_input = int(input("Enter the number of the laundry: "))
         if laundry_id_input == -1:
             break
+        if laundry_id_input < -1 or laundry_id_input >= len(laundry):
+            print ("That index does not exist, please try again")
+            continue
         if laundry_id_input < len(remaining_laundry):
             laundry_to_clean.append(remaining_laundry.pop(laundry_id_input))
         else:
