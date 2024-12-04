@@ -216,7 +216,7 @@ if __name__ == "__main__":
         print("-" * 100)
         for i in range(len(laundry)):
             if i < len(remaining_laundry):
-                print(f"{i}. {str(laundry[remaining_laundry[i]]):<50}", end="")
+                print(f"{(str(i) + '. ' + str(laundry[remaining_laundry[i]])):<50}", end="")
             else:
                 print(" " * 50, end="")
             if i < len(laundry_to_clean):
