@@ -216,7 +216,10 @@ if __name__ == "__main__":
         print("-" * 100)
         for i in range(len(laundry)):
             if i < len(remaining_laundry):
-                print(f"{(str(i) + '. ' + str(laundry[remaining_laundry[i]])):<50}", end="")
+                print(
+                    f"{(str(i) + '. ' + str(laundry[remaining_laundry[i]])):<50}",
+                    end="",
+                )
             else:
                 print(" " * 50, end="")
             if i < len(laundry_to_clean):
@@ -230,7 +233,7 @@ if __name__ == "__main__":
         if laundry_id_input == -1:
             break
         if laundry_id_input < -1 or laundry_id_input >= len(laundry):
-            print ("That index does not exist, please try again")
+            print("That index does not exist, please try again")
             continue
         if laundry_id_input < len(remaining_laundry):
             laundry_to_clean.append(remaining_laundry.pop(laundry_id_input))
