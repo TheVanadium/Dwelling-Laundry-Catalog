@@ -1,8 +1,5 @@
 import sqlite3
-
-def connect_db():
-    conn = sqlite3.connect("Checkpoint2-dbase.sqlite3")
-    return conn
+from modifyData import *
 
 def update_owner(
     name: str,
@@ -25,14 +22,7 @@ def update_owner(
             cursor.execute("DELETE FROM IsAllergicTo WHERE owner = ?;", (name,))
             # Add new allergies
             for allergy in new_allergies:
-                cursor.execute(
-                    "INSERT OR IGNORE INTO detergent_ingredient VALUES (?);", 
-                    (allergy,)
-                )
-                cursor.execute(
-                    "INSERT INTO IsAllergicTo VALUES (?, ?);",
-                    (name, allergy)
-                )
+                cursor.execute("INSERT INTO IsAllergicTo (owner, detergent_ingredient) VALUES (?, ?);", (name, allergy))
 
         if new_can_wash is not None:
             # Remove old wash permissions
@@ -40,9 +30,7 @@ def update_owner(
             # Add new wash permissions
             for washee in new_can_wash:
                 cursor.execute(
-                    "INSERT INTO OwnerCanWash VALUES (?, ?);",
-                    (name, washee)
-                )
+                    "INSERT INTO OwnerCanWash (washer, washee) VALUES (?, ?);", (name, washee))
 
         if new_liked_cleaners is not None:
             # Remove old likes
@@ -50,7 +38,7 @@ def update_owner(
             # Add new likes
             for cleaner in new_liked_cleaners:
                 cursor.execute(
-                    "INSERT INTO Likes VALUES (?, ?);",
+                    "INSERT INTO Likes (cleaners, owner) VALUES (?, ?);",
                     (cleaner, name)
                 )
 
@@ -60,7 +48,6 @@ def update_owner(
 
     cursor.close()
     db.commit()
-    db.close()
 
 def update_cleaners(
     address: str,
@@ -78,10 +65,11 @@ def update_cleaners(
             return
 
         if new_name is not None:
+            delete_cleaners(address, db)  # Delete existing cleaner data
             cursor.execute(
-                "UPDATE cleaners SET name = ? WHERE address = ?;",
-                (new_name, address)
-            )
+                "INSERT OR IGNORE INTO cleaners (address, name) VALUES (?, ?);",
+                (address, new_name)
+            )  
 
         if new_supported_systems is not None:
             # Remove old systems
@@ -104,90 +92,51 @@ def update_cleaners(
 
     cursor.close()
     db.commit()
-    db.close()
+    # Removed db.close() to keep the connection open for further operations
 
-def update_laundry(
+def update_laundry(# for front end a while loop whill go through all laundry from owner listed by a query 
     laundry_id: int,
-    new_description: str = None,
-    new_location: str = None,
-    new_special_instructions: str = None,
-    new_dirty: bool = None,
-    new_volume: int = None,
-    new_detergents: list[str] = None,
-    new_color: str = None,
-    new_owner: str = None,
+    description: str = None,
+    location: str = None,
+    special_instructions: str = None,
+    dirty: bool = None,
+    volume: int = None,
+    detergents: list[str] = None,
+    color: str = None,
+    isDark: bool = False,
+    owner: str = None,
     db: sqlite3.Connection = connect_db()
 ) -> None:
     cursor = db.cursor()
 
-    try:
-        # Verify laundry exists
-        cursor.execute("SELECT id FROM laundry WHERE id = ?;", (laundry_id,))
-        if not cursor.fetchone():
-            print(f"Laundry item {laundry_id} does not exist in the database.")
-            return
-
-        # Update main laundry table
-        update_fields = []
-        update_values = []
-        if new_description is not None:
-            update_fields.append("description = ?")
-            update_values.append(new_description)
-        if new_location is not None:
-            update_fields.append("location = ?")
-            update_values.append(new_location)
-        if new_special_instructions is not None:
-            update_fields.append("special_instructions = ?")
-            update_values.append(new_special_instructions)
-        if new_dirty is not None:
-            update_fields.append("dirty = ?")
-            update_values.append(new_dirty)
-        if new_volume is not None:
-            update_fields.append("volume = ?")
-            update_values.append(new_volume)
-
-        if update_fields:
-            update_values.append(laundry_id)
-            cursor.execute(
-                f"UPDATE laundry SET {', '.join(update_fields)} WHERE id = ?;",
-                tuple(update_values)
-            )
-
-        if new_detergents is not None:
-            # Update detergents
-            cursor.execute("DELETE FROM Deterges WHERE laundry = ?;", (laundry_id,))
-            for detergent in new_detergents:
-                cursor.execute(
-                    "INSERT INTO Deterges VALUES (?, ?);",
-                    (laundry_id, detergent)
-                )
-
-        if new_color is not None:
-            # Update color
-            cursor.execute("DELETE FROM IsColor WHERE laundry = ?;", (laundry_id,))
-            cursor.execute(
-                "INSERT INTO IsColor VALUES (?, ?);",
-                (new_color, laundry_id)
-            )
-
-        if new_owner is not None:
-            # Update owner
-            cursor.execute("DELETE FROM OwnedBy WHERE id = ?;", (laundry_id,))
-            cursor.execute(
-                "INSERT INTO OwnedBy VALUES (?, ?);",
-                (new_owner, laundry_id)
-            )
-
-        print(f"Laundry item {laundry_id} updated successfully.")
-    except sqlite3.Error as e:
-        print(f"Error updating laundry item {laundry_id}: {e}")
+    # Update logic
+    if description is not None:
+        cursor.execute("UPDATE laundry SET description = ? WHERE id = ?;", (description, laundry_id))
+    if location is not None:
+        cursor.execute("UPDATE laundry SET location = ? WHERE id = ?;", (location, laundry_id))
+    if special_instructions is not None:
+        cursor.execute("UPDATE laundry SET special_instructions = ? WHERE id = ?;", (special_instructions, laundry_id))
+    if dirty is not None:
+        cursor.execute("UPDATE laundry SET dirty = ? WHERE id = ?;", (dirty, laundry_id))
+    if volume is not None:
+        cursor.execute("UPDATE laundry SET volume = ? WHERE id = ?;", (volume, laundry_id))
+    if detergents is not None:
+        # Clear existing detergents for this laundry item
+        cursor.execute("DELETE FROM Deterges WHERE laundry = ?;", (laundry_id,))
+        for detergent in detergents:
+            cursor.execute("INSERT INTO Deterges VALUES (?, ?);", (laundry_id, detergent))
+    if color is not None:
+        cursor.execute("INSERT OR REPLACE INTO color VALUES (?, ?);", (color, isDark))        
+        cursor.execute("UPDATE IsColor SET color = ? WHERE laundry = ?", (color, laundry_id))
+    if owner is not None:
+        cursor.execute("UPDATE OwnedBy SET name = ? WHERE id = ?;", (owner, laundry_id))
 
     cursor.close()
     db.commit()
-    db.close()
 
 def update_detergent(
     name: str,
+    new_name: str = None,
     new_for_darks: bool = None,
     new_for_lights: bool = None,
     new_whitens: bool = None,
@@ -204,88 +153,78 @@ def update_detergent(
             return
 
         # Update main detergent table
-        update_fields = []
-        update_values = []
         if new_for_darks is not None:
-            update_fields.append("for_darks = ?")
-            update_values.append(new_for_darks)
+            cursor.execute("UPDATE detergent SET for_darks = ? WHERE name = ?;", (new_for_darks, name))
+
         if new_for_lights is not None:
-            update_fields.append("for_lights = ?")
-            update_values.append(new_for_lights)
+            cursor.execute("UPDATE detergent SET for_lights = ? WHERE name = ?;", (new_for_lights, name))
+            
         if new_whitens is not None:
-            update_fields.append("whitens = ?")
-            update_values.append(new_whitens)
+            cursor.execute("UPDATE detergent SET whitens = ? WHERE name = ?;", (new_whitens, name))
 
-        if update_fields:
-            update_values.append(name)
-            cursor.execute(
-                f"UPDATE detergent SET {', '.join(update_fields)} WHERE name = ?;",
-                tuple(update_values)
-            )
-
+        if new_name is not None:
+            cursor.execute("UPDATE detergent SET name = ? WHERE name = ?;", (new_name, name))
+            
         if new_ingredients is not None:
-            # Update ingredients
+            current_name = new_name if new_name else name
             cursor.execute("DELETE FROM DetergentComposedOf WHERE detergent = ?;", (name,))
+            
             for ingredient in new_ingredients:
-                cursor.execute(
-                    "INSERT OR IGNORE INTO detergent_ingredient VALUES (?);",
-                    (ingredient,)
-                )
-                cursor.execute(
-                    "INSERT INTO DetergentComposedOf VALUES (?, ?);",
-                    (name, ingredient)
-                )
-
+                cursor.execute("INSERT OR IGNORE INTO detergent_ingredient (name) VALUES (?);", (ingredient,))
+                cursor.execute("INSERT INTO DetergentComposedOf (detergent, ingredient) VALUES (?, ?);", (current_name, ingredient))
+        
         print(f"Detergent {name} updated successfully.")
     except sqlite3.Error as e:
         print(f"Error updating detergent {name}: {e}")
 
     cursor.close()
     db.commit()
-    db.close()
+    #db.close()
 
 if __name__ == "__main__":
+
     db = connect_db()
 
-    # Update an owner
-    update_owner(
-        name="John Smith",
-        new_allergies=["New Allergen", "Sodium lauryl sulfate"],
-        new_can_wash=["Jane Doe", "Bob Smith"],
-        new_liked_cleaners=["123 Main St", "456 Oak Ave"]
-    )
+    # update_owner(
+    #     name="GARFIELD",
+    #     new_allergies=["Grinch", "Lorax"],
+    #     new_can_wash=["Anyone but nermal"],
+    #     new_liked_cleaners=["John's House"],
+    #     db=db
+    # )
+    # # Update a cleaner
+    # update_cleaners(
+    #     address="123 G St",
+    #     new_name="Grand opening",
+    #     new_supported_systems=[["Washing machines","All purpose","Dryers"]],
+    #     db = db
+    # )
+    # # Update a laundry item
+    # update_laundry(
+    #     laundry_id=30,
+    #     description="Designer pants",
+    #     location="123 G St",
+    #     special_instructions="never wash",
+    #     dirty=False,
+    #     volume=2,
+    #     detergents=[],
+    #     color="Solid Purple",
+    #     isDark = True,
+    #     owner="Odie",
+    #     db=db
+    #     )
 
-    # Update a cleaner
-    update_cleaners(
-        address="123 Main St",
-        new_name="Super Quick Clean",
-        new_supported_systems=[
-            ("Washing Machine", "Tide", "Tumble Dry"),
-            ("Dry Clean", "DrySolvent", "Press"),
-            ("Hand Wash", "Gentle Soap", "Hang Dry")
-        ]
-    )
-
-    # Update a laundry item
-    update_laundry(
-        laundry_id=1,
-        new_description="Designer jeans",
-        new_location="Master bedroom closet",
-        new_special_instructions="Dry clean only",
-        new_dirty=True,
-        new_volume=2,
-        new_detergents=["DrySolvent"],
-        new_color="Dark Blue",
-        new_owner="John Smith"
-    )
-
-    # Update a detergent
-    update_detergent(
-        name="Tide",
-        new_for_darks=True,
-        new_for_lights=True,
-        new_whitens=False,
-        new_ingredients=["Eco-friendly enzyme", "Natural fragrance", "Biodegradable surfactant"]
-    )
+    # # Update a detergent
+    # update_detergent(
+    #     name="Bad value",
+    #     new_name = "better value",
+    #     new_for_darks=True,
+    #     new_for_lights=True,
+    #     new_whitens=True,
+    #     new_ingredients=["best enzyme", "best fragrance", "best surfactant"],
+    #     db=db
+    # )
+    delete_owner("German D", db)
+    
 
     db.close()
