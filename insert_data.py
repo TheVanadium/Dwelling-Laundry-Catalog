@@ -148,30 +148,8 @@ def get_laundry(
     cursor.close()
     return laundry
 
-
-if __name__ == "__main__":
-    db = connect_db()
+def do_laundry(db: sqlite3.Connection, username: str) -> None:
     cursor = db.cursor()
-
-    owner: str = ""
-    cursor.execute("SELECT name FROM owner;")
-    for name in detuple_list(cursor.fetchall()):
-        print(name)
-    while not owner:
-        owner = input("Enter your name: ")
-        cur = db.cursor()
-        cur.execute(
-            f"""
-            SELECT name
-            FROM Owner
-            WHERE name = ?;
-        """,
-            (owner,),
-        )
-        if not cur.fetchone():
-            print("Owner not found in database.")
-            owner = ""
-
     cleaner_address: str = ""
     cursor.execute("SELECT name, address FROM cleaners;")
     for cleaner in cursor.fetchall():
@@ -202,13 +180,17 @@ if __name__ == "__main__":
             int(input("Enter the number of the washing method: ")) - 1
         )
         print(washing_method_index)
-    laundry = get_laundry(db, washing_methods[washing_method_index], owner, True)
+    laundry = get_laundry(db, washing_methods[washing_method_index], username, True)
 
     remaining_laundry: list[int] = [i for i in range(len(laundry))]
     laundry_to_clean: list[int] = []
 
+    if not remaining_laundry:
+        print("No laundry to clean with this method")
+        return
+
     laundry_id_input: int = -2
-    while remaining_laundry and laundry_id_input != -1:
+    while laundry_id_input != -1:
         # two columns, one remaining_laundry, one laundry_to_clean
         header1 = "Remaining Laundry"
         header2 = "Laundry to Clean"
@@ -267,5 +249,31 @@ if __name__ == "__main__":
     except sqlite3.Error as e:
         print(f"Error cleaning laundry: {e}")
 
+if __name__ == "__main__":
+    db = connect_db()
+    cursor = db.cursor()
+
+    owner: str = ""
+    cursor.execute("SELECT name FROM owner;")
+    for name in detuple_list(cursor.fetchall()):
+        print(name)
+    while not owner:
+        owner = input("Enter your name: ")
+        cur = db.cursor()
+        cur.execute(
+            f"""
+            SELECT name
+            FROM Owner
+            WHERE name = ?;
+        """,
+            (owner,),
+        )
+        if not cur.fetchone():
+            print("Owner not found in database.")
+            owner = ""
+
+    do_laundry(db, owner)
+
     cursor.close()
     db.close()
+
