@@ -58,6 +58,10 @@ def open_dirty_menu(db: sqlite3.Connection, username: str) -> None:
     print(f"Item {dirty_id} marked as dirty.")
     open_dirty_menu(db, username)
 
+def edit_laundry_menu(db, username):
+    cursor = db.cursor()
+
+
 def edit(db: sqlite3.Connection, username: str) -> None:
     cursor = db.cursor()
     print("1. Laundry")
@@ -73,7 +77,7 @@ def edit(db: sqlite3.Connection, username: str) -> None:
         print("Invalid option. Please try again.")
         return edit(db, username)
     if int_option == 1:
-        edit_laundry(db, username)
+        edit_laundry_menu(db, username)
     elif int_option == 2:
         edit_detergent(db)
     elif int_option == 3:
