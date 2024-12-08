@@ -38,20 +38,25 @@ def open_dirty_menu(db: sqlite3.Connection, username: str) -> None:
     laundry_ids = cursor.execute("SELECT id FROM OwnedBy WHERE name = ?;", (username,)).fetchall()
     laundry = cursor.execute("SELECT * FROM laundry WHERE id IN ({});".format(", ".join([str(laundry_id[0]) for laundry_id in laundry_ids]))).fetchall()
     
-    all_laundry_clean = True
+    ids: list[int] = []
+    all_laundry_dirty = True
     for item in laundry:
-        if int(item[4]):
-            all_laundry_clean = False
+        if not int(item[4]):
+            all_laundry_dirty = False
+        ids.append(item[0])
         print(f"ID: {item[0]}, Description: {item[1]} - {('DIRTY' if int(item[4]) else 'CLEAN')}")
     
-    if all_laundry_clean:
-        print("All laundry is clean.")
+    if all_laundry_dirty:
+        print("All laundry is dirty.")
         return
 
     dirty_id = input("Enter the ID of the item you want to mark as dirty (Enter -1 to exit): ")
     if dirty_id == "-1":
         return
-    
+    if dirty_id.isdigit() and int(dirty_id) not in ids:
+        print("Invalid ID. Please try again.")
+        return open_dirty_menu(db, username)
+
     cursor = db.cursor()
     cursor.execute("UPDATE laundry SET dirty = 1 WHERE id = ?;", (dirty_id,))
     db.commit()
