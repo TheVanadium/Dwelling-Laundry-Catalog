@@ -94,6 +94,7 @@ def insert_cleaners(
                 )
             except sqlite3.IntegrityError:
                 print(f"System support {address}->{system} already exists")
+                db.rollback()
 
     cursor.close()
     db.commit()
@@ -160,6 +161,7 @@ def insert_detergent(
         )
     except sqlite3.IntegrityError:
         print(f"Detergent {name} already exists in the database.")
+        db.rollback()
 
     if ingredients:
         for ingredient in ingredients:
@@ -172,6 +174,7 @@ def insert_detergent(
                 )
             except sqlite3.IntegrityError:
                 print(f"Ingredient {ingredient} already exists in the database.")
+                db.rollback()
 
     cursor.close()
     db.commit()
@@ -221,6 +224,7 @@ def update_owner(
         print(f"Owner {name} updated successfully.")
     except sqlite3.Error as e:
         print(f"Error updating owner {name}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -265,6 +269,7 @@ def update_cleaners(
         print(f"Cleaner at {address} updated successfully.")
     except sqlite3.Error as e:
         print(f"Error updating cleaner at {address}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -280,7 +285,6 @@ def update_laundry(# for front end a while loop whill go through all laundry fro
     detergents: list[str] = None,
     color: str = None,
     isDark: bool = False,
-    owner: str = None,
     db: sqlite3.Connection = connect_db()
 ) -> None:
     cursor = db.cursor()
@@ -304,8 +308,6 @@ def update_laundry(# for front end a while loop whill go through all laundry fro
     if color is not None:
         cursor.execute("INSERT OR REPLACE INTO color VALUES (?, ?);", (color, isDark))        
         cursor.execute("UPDATE IsColor SET color = ? WHERE laundry = ?", (color, laundry_id))
-    if owner is not None:
-        cursor.execute("UPDATE OwnedBy SET name = ? WHERE id = ?;", (owner, laundry_id))
 
     cursor.close()
     db.commit()
@@ -352,6 +354,7 @@ def update_detergent(
         print(f"Detergent {name} updated successfully.")
     except sqlite3.Error as e:
         print(f"Error updating detergent {name}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -376,6 +379,7 @@ def delete_owner(
         print(f"Owner {name} and related data deleted successfully.")
     except sqlite3.Error as e:
         print(f"Error deleting owner {name}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -396,6 +400,7 @@ def delete_cleaners(
         print(f"Cleaner at {address} and related data deleted successfully.")
     except sqlite3.Error as e:
         print(f"Error deleting cleaner at {address}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -418,6 +423,7 @@ def delete_laundry(
         print(f"Laundry item {laundry_id} and related data deleted successfully.")
     except sqlite3.Error as e:
         print(f"Error deleting laundry item {laundry_id}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
@@ -439,6 +445,7 @@ def delete_detergent(
         print(f"Detergent {name} and related data deleted successfully.")
     except sqlite3.Error as e:
         print(f"Error deleting detergent {name}: {e}")
+        db.rollback()
 
     cursor.close()
     db.commit()
