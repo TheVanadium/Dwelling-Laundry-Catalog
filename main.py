@@ -87,29 +87,53 @@ def edit_laundry_menu(db, username):
     
     # Gather new values for the selected laundry item
     selected_id = int(selected_id)
-    print("\nEnter new values or press Enter to keep the current value:")
-    new_description = input("New Description: ")
-    new_location = input("New Location: ")
-    new_special_instructions = input("New Special Instructions: ")
-    new_dirty_status = input("Is it Dirty? (yes/no): ").strip().lower()
-    new_volume = input("New Volume: ")
+    print("\nWhat would you like to do with this laundry item?")
+    print("1. Edit")
+    print("2. Delete")
+    print("3. Cancel")
+    choice = input("Enter your choice (1/2/3): ").strip()
+
+
+    if choice == "1":
+        print("\nEnter new values or press Enter to keep the current value:")
+        new_description = input("New Description: ")
+        new_location = input("New Location: ")
+        new_special_instructions = input("New Special Instructions: ")
+        new_dirty_status = input("Is it Dirty? (yes/no): ").strip().lower()
+        new_volume = input("New Volume: ")
     
-    # Convert inputs into valid values
-    dirty = True if new_dirty_status == "yes" else False if new_dirty_status == "no" else None
-    volume = int(new_volume) if new_volume.isdigit() else None
+        # Convert inputs into valid values
+        dirty = True if new_dirty_status == "yes" else False if new_dirty_status == "no" else None
+        volume = int(new_volume) if new_volume.isdigit() else None
+
+        # Call update_laundry function with provided inputs
+        update_laundry(
+            laundry_id=selected_id,
+            description=new_description if new_description else None,
+            location=new_location if new_location else None,
+            special_instructions=new_special_instructions if new_special_instructions else None,
+            dirty=dirty,
+            volume=volume,
+            db=db
+        )
     
-    # Call update_laundry function with provided inputs
-    update_laundry(
-        laundry_id=selected_id,
-        description=new_description if new_description else None,
-        location=new_location if new_location else None,
-        special_instructions=new_special_instructions if new_special_instructions else None,
-        dirty=dirty,
-        volume=volume,
-        db=db
-    )
-    
-    print(f"\nLaundry item {selected_id} updated successfully.")
+        print(f"\nLaundry item {selected_id} updated successfully.")
+
+    elif choice == "2":
+        # Proceed with deleting the laundry item
+        confirm = input(
+            f"Are you sure you want to delete laundry item {selected_id}? (yes/no): "
+        ).strip().lower()
+        if confirm == "yes":
+            delete_laundry(selected_id, db)  # Assuming delete_laundry is implemented
+            print(f"\nLaundry item {selected_id} deleted successfully.")
+        else:
+            print("Deletion canceled.")
+
+    elif choice == "3":
+        # Cancel the operation
+        print("Operation canceled.")
+        return edit_laundry_menu(db, username)
     
     # Ask user if they want to edit another item
     edit_again = input("\nDo you want to edit another laundry item? (yes/no): ").strip().lower()
@@ -137,41 +161,64 @@ def edit_detergent_menu(db):
     if selected_name not in [detergent[0] for detergent in detergents]:
         print("Invalid name. Please try again.")
         return edit_detergent_menu(db)
+    
+    print(f"\nWhat would you like to do with the '{selected_name}' detergent?")
+    print("1. Edit")
+    print("2. Delete")
+    print("3. Cancel")
+    choice = input("Enter your choice (1/2/3): ").strip()
 
-    # Gather new values for the selected detergent
-    print("\nEnter new values or press Enter to keep the current value:")
-    new_name = input("New Name: ")
-    new_for_darks = input("For Darks (yes/no): ").strip().lower()
-    new_for_lights = input("For Lights (yes/no): ").strip().lower()
-    new_whitens = input("Whitens (yes/no): ").strip().lower()
+    if choice == "1":
+        # Gather new values for the selected detergent
+        print("\nEnter new values or press Enter to keep the current value:")
+        new_name = input("New Name: ")
+        new_for_darks = input("For Darks (yes/no): ").strip().lower()
+        new_for_lights = input("For Lights (yes/no): ").strip().lower()
+        new_whitens = input("Whitens (yes/no): ").strip().lower()
 
-    # Convert boolean inputs
-    for_darks = True if new_for_darks == "yes" else False if new_for_darks == "no" else None
-    for_lights = True if new_for_lights == "yes" else False if new_for_lights == "no" else None
-    whitens = True if new_whitens == "yes" else False if new_whitens == "no" else None
+        # Convert boolean inputs
+        for_darks = True if new_for_darks == "yes" else False if new_for_darks == "no" else None
+        for_lights = True if new_for_lights == "yes" else False if new_for_lights == "no" else None
+        whitens = True if new_whitens == "yes" else False if new_whitens == "no" else None
 
-    # Prompt user to update ingredients
-    update_ingredients = input("Do you want to update the ingredients? (yes/no): ").strip().lower()
-    new_ingredients = []
-    if update_ingredients == "yes":
-        print("Enter new ingredients (type 'done' to finish):")
-        while True:
-            ingredient = input("Ingredient: ").strip()
-            if ingredient.lower() == "done":
-                break
-            if ingredient:
-                new_ingredients.append(ingredient)
+        # Prompt user to update ingredients
+        update_ingredients = input("Do you want to update the ingredients? (yes/no): ").strip().lower()
+        new_ingredients = []
+        if update_ingredients == "yes":
+            print("Enter new ingredients (type 'done' to finish):")
+            while True:
+                ingredient = input("Ingredient: ").strip()
+                if ingredient.lower() == "done":
+                    break
+                if ingredient:
+                    new_ingredients.append(ingredient)
 
-    # Call update_detergent function with provided inputs
-    update_detergent(
-        name=selected_name,
-        new_name=new_name if new_name else None,
-        new_for_darks=for_darks,
-        new_for_lights=for_lights,
-        new_whitens=whitens,
-        new_ingredients=new_ingredients if update_ingredients == "yes" else None,
-        db=db
-    )
+        # Call update_detergent function with provided inputs
+        update_detergent(
+            name=selected_name,
+            new_name=new_name if new_name else None,
+            new_for_darks=for_darks,
+            new_for_lights=for_lights,
+            new_whitens=whitens,
+            new_ingredients=new_ingredients if update_ingredients == "yes" else None,
+            db=db
+        )
+    
+    elif choice == "2":
+        # Proceed with deleting the laundry item
+        confirm = input(
+            f"Are you sure you want to delete laundry item {selected_name}? (yes/no): "
+        ).strip().lower()
+        if confirm == "yes":
+            delete_detergent(selected_name, db)  
+            print(f"\nDetergent item {selected_name} deleted successfully.")
+        else:
+            print("Deletion canceled.")
+
+    elif choice == "3":
+        # Cancel the operation
+        print("Operation canceled.")
+        return edit_detergent_menu(db)
 
     # Ask user if they want to edit another detergent
     edit_again = input("\nDo you want to edit another detergent? (yes/no): ").strip().lower()
@@ -180,11 +227,6 @@ def edit_detergent_menu(db):
     
 def edit_user_menu(db, username):
     cursor = db.cursor()
-
-    # Prompt user to select an owner by name
-    # selected_option = input("\n (Enter -1 to exit): ")
-    # if selected_option == "-1":
-    #     return
 
     # Display existing details for the selected owner
     allergies = cursor.execute(
@@ -202,53 +244,71 @@ def edit_user_menu(db, username):
     print(f"Can Wash For: {[w[0] for w in can_wash]}")
     print(f"Liked Cleaners: {[c[0] for c in liked_cleaners]}")
 
-    # Gather new values for the owner
-    update_allergies = input("\nDo you want to update allergies? (yes/no): ").strip().lower()
-    new_allergies = []
-    if update_allergies == "yes":
-        print("Enter new allergies (type 'done' to finish):")
-        while True:
-            allergy = input("Allergy: ").strip()
-            if allergy.lower() == "done":
-                break
-            if allergy:
-                new_allergies.append(allergy)
+    print("\nWhat would you like to do?")
+    print("1. Edit")
+    print("2. Delete my account")
+    print("3. Return")
+    choice = input("Enter your choice (1/2/3): ").strip()
 
-    update_can_wash = input("\nDo you want to update who they can wash for? (yes/no): ").strip().lower()
-    new_can_wash = []
-    if update_can_wash == "yes":
-        print("Enter names of people they can wash for (type 'done' to finish):")
-        while True:
-            washee = input("Can wash for: ").strip()
-            if washee.lower() == "done":
-                break
-            if washee:
-                new_can_wash.append(washee)
+    if choice == "1":
+        # Gather new values for the owner
+        update_allergies = input("\nDo you want to update allergies? (yes/no): ").strip().lower()
+        new_allergies = []
+        if update_allergies == "yes":
+            print("Enter new allergies (type 'done' to finish):")
+            while True:
+                allergy = input("Allergy: ").strip()
+                if allergy.lower() == "done":
+                    break
+                if allergy:
+                    new_allergies.append(allergy)
 
-    update_liked_cleaners = input("\nDo you want to update liked cleaners? (yes/no): ").strip().lower()
-    new_liked_cleaners = []
-    if update_liked_cleaners == "yes":
-        print("Enter names of cleaners they like (type 'done' to finish):")
-        while True:
-            cleaner = input("Cleaner: ").strip()
-            if cleaner.lower() == "done":
-                break
-            if cleaner:
-                new_liked_cleaners.append(cleaner)
+        update_can_wash = input("\nDo you want to update who they can wash for? (yes/no): ").strip().lower()
+        new_can_wash = []
+        if update_can_wash == "yes":
+            print("Enter names of people they can wash for (type 'done' to finish):")
+            while True:
+                washee = input("Can wash for: ").strip()
+                if washee.lower() == "done":
+                    break
+                if washee:
+                    new_can_wash.append(washee)
 
-    # Call update_owner function with provided inputs
-    update_owner(
-        name=username,
-        new_allergies=new_allergies if update_allergies == "yes" else None,
-        new_can_wash=new_can_wash if update_can_wash == "yes" else None,
-        new_liked_cleaners=new_liked_cleaners if update_liked_cleaners == "yes" else None,
-        db=db
-    )
+        update_liked_cleaners = input("\nDo you want to update liked cleaners? (yes/no): ").strip().lower()
+        new_liked_cleaners = []
+        if update_liked_cleaners == "yes":
+            print("Enter names of cleaners they like (type 'done' to finish):")
+            while True:
+                cleaner = input("Cleaner: ").strip()
+                if cleaner.lower() == "done":
+                    break
+                if cleaner:
+                    new_liked_cleaners.append(cleaner)
 
-    # Ask user if they want to edit another owner
-    edit_again = input("\nDo you want to edit user again? (yes/no): ").strip().lower()
-    if edit_again == "yes":
-        return edit_user_menu(db, username)
+        # Call update_owner function with provided inputs
+        update_owner(
+            name=username,
+            new_allergies=new_allergies if update_allergies == "yes" else None,
+            new_can_wash=new_can_wash if update_can_wash == "yes" else None,
+            new_liked_cleaners=new_liked_cleaners if update_liked_cleaners == "yes" else None,
+            db=db
+        )
+
+    elif choice == "2":
+        # Proceed with deleting the laundry item
+        confirm = input(
+            f"Are you sure you want to delete data for {username}? (yes/no): "
+        ).strip().lower()
+        if confirm == "yes":
+            delete_owner(username, db)  
+            print(f"\n{username} deleted successfully.")
+        else:
+            print("Deletion canceled.")
+            return edit_user_menu(db, username)
+    
+    elif choice == "3":
+        return edit(db, username)
+
 
 
 def edit_cleaner_menu(db):
@@ -272,38 +332,62 @@ def edit_cleaner_menu(db):
         print("Invalid address. Please try again.")
         return edit_cleaner_menu(db)
 
-    # Display existing supported systems for the selected cleaner
-    supported_systems = cursor.execute(
-        "SELECT wash_method, detergent, dry_method FROM SupportsCleaningSystem WHERE cleaners = ?;",
-        (selected_address,)
-    ).fetchall()
 
-    print(f"\nDetails for cleaner at {selected_address}:")
-    print(f"Supported Systems: {supported_systems if supported_systems else 'None'}")
+    print(f"\nWhat would you like to do with the address : {selected_address}?")
+    print("1. Edit")
+    print("2. Delete")
+    print("3. Cancel")
+    choice = input("Enter your choice (1/2/3): ").strip()
 
-    # Gather new values for the cleaner
-    new_name = input("\nEnter new name for the cleaner (or press Enter to keep current name): ").strip()
-    update_supported_systems = input("Do you want to update supported systems? (yes/no): ").strip().lower()
+    if choice == "1":
+        # Display existing supported systems for the selected cleaner
+        supported_systems = cursor.execute(
+            "SELECT wash_method, detergent, dry_method FROM SupportsCleaningSystem WHERE cleaners = ?;",
+            (selected_address,)
+        ).fetchall()
 
-    new_supported_systems = []
-    if update_supported_systems == "yes":
-        print("Enter new supported systems (type 'done' to finish):")
-        while True:
-            wash_method = input("Wash Method (or type 'done' to finish): ").strip()
-            if wash_method.lower() == "done":
-                break
-            detergent = input("Detergent: ").strip()
-            dry_method = input("Dry Method: ").strip()
-            if wash_method and detergent and dry_method:
-                new_supported_systems.append((wash_method, detergent, dry_method))
+        print(f"\nDetails for cleaner at {selected_address}:")
+        print(f"Supported Systems: {supported_systems if supported_systems else 'None'}")
 
-    # Call update_cleaners function with provided inputs
-    update_cleaners(
-        address=selected_address,
-        new_name=new_name if new_name else None,
-        new_supported_systems=new_supported_systems if update_supported_systems == "yes" else None,
-        db=db
-    )
+        # Gather new values for the cleaner
+        new_name = input("\nEnter new name for the cleaner (or press Enter to keep current name): ").strip()
+        update_supported_systems = input("Do you want to update supported systems? (yes/no): ").strip().lower()
+
+        new_supported_systems = []
+        if update_supported_systems == "yes":
+            print("Enter new supported systems (type 'done' to finish):")
+            while True:
+                wash_method = input("Wash Method (or type 'done' to finish): ").strip()
+                if wash_method.lower() == "done":
+                    break
+                detergent = input("Detergent: ").strip()
+                dry_method = input("Dry Method: ").strip()
+                if wash_method and detergent and dry_method:
+                    new_supported_systems.append((wash_method, detergent, dry_method))
+
+        # Call update_cleaners function with provided inputs
+        update_cleaners(
+            address=selected_address,
+            new_name=new_name if new_name else None,
+            new_supported_systems=new_supported_systems if update_supported_systems == "yes" else None,
+            db=db
+        )
+
+    elif choice == "2":
+        # Proceed with deleting the laundry item
+        confirm = input(
+            f"Are you sure you want to delete {selected_address}? (yes/no): "
+        ).strip().lower()
+        if confirm == "yes":
+            delete_cleaners(selected_address, db)  # Assuming delete_laundry is implemented
+            print(f"\n{selected_address} deleted successfully.")
+        else:
+            print("Deletion canceled.")
+        
+    elif choice == "3":
+        # Cancel the operation
+        print("Operation canceled.")
+        return edit_cleaner_menu(db)
 
     # Ask user if they want to edit another cleaner
     edit_again = input("\nDo you want to edit another cleaner? (yes/no): ").strip().lower()
