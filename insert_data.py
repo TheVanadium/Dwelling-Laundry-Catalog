@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 
 def detuple(t: tuple[str]) -> str:
@@ -124,6 +125,52 @@ def get_laundry(
         ).fetchall()
     )
     valid_washees.append(washer)
+    # if a washee is allergic to the detergent, remove them from the list
+    # CREATE TABLE DetergentComposedOf (
+    # detergent VARCHAR(255),
+    # ingredient VARCHAR(255),
+    # PRIMARY KEY (detergent, ingredient),
+    # FOREIGN KEY (detergent) REFERENCES detergent(name),
+    # FOREIGN KEY (ingredient) REFERENCES detergent_ingredient(name)
+    # );
+
+    # CREATE TABLE IsAllergicTo (
+    # owner VARCHAR(255),
+    # detergent_ingredient VARCHAR(255),
+    # PRIMARY KEY (owner, detergent_ingredient),
+    # FOREIGN KEY (owner) REFERENCES owner(name),
+    # FOREIGN KEY (detergent_ingredient) REFERENCES detergent_ingredient(name)
+    # );
+
+    # CREATE TABLE detergent_ingredient (
+    #   name VARCHAR(255) PRIMARY KEY
+    # );
+
+    # detergent is 1st element of washing_method tuple
+
+    for washee in valid_washees:
+        cursor.execute(
+            f"""
+            SELECT detergent_ingredient
+            FROM IsAllergicTo
+            WHERE owner = ?;
+        """,
+            (washee,),
+        )
+        for row in cursor.fetchall():
+            cursor.execute(
+                f"""
+                SELECT ingredient
+                FROM DetergentComposedOf
+                WHERE detergent = ?;
+            """,
+                (washing_method[1],),
+            )
+            if row in cursor.fetchall():
+                print(f"{washee} is allergic to the detergent {washing_method[1]}.")
+                valid_washees.remove(washee)
+                break
+
     print(valid_washees)
     laundry: list[tuple[int, str, str]] = []
     for washee in valid_washees:
@@ -147,6 +194,7 @@ def get_laundry(
         laundry.extend(cursor.fetchall())
     cursor.close()
     return laundry
+
 
 def do_laundry(db: sqlite3.Connection, username: str) -> None:
     cursor = db.cursor()
@@ -192,6 +240,7 @@ def do_laundry(db: sqlite3.Connection, username: str) -> None:
     laundry_id_input: int = -2
     while laundry_id_input != -1:
         # two columns, one remaining_laundry, one laundry_to_clean
+        os.system("cls")
         header1 = "Remaining Laundry"
         header2 = "Laundry to Clean"
         print(f"{header1:<50}{header2}")
@@ -249,6 +298,7 @@ def do_laundry(db: sqlite3.Connection, username: str) -> None:
     except sqlite3.Error as e:
         print(f"Error cleaning laundry: {e}")
 
+
 if __name__ == "__main__":
     db = connect_db()
     cursor = db.cursor()
@@ -276,4 +326,3 @@ if __name__ == "__main__":
 
     cursor.close()
     db.close()
-
