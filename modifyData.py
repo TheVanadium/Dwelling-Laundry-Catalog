@@ -77,6 +77,7 @@ def insert_cleaners(
         )
     except sqlite3.IntegrityError:
         print(f"Cleaner at address {address} already exists in the database.")
+        db.rollback() 
 
     if supported_systems:
         for system in supported_systems:
